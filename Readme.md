@@ -6,7 +6,7 @@
 
 
 
-在==不含中文和空格==的任意目录下新建一个文件夹；再在该文件夹下新建src文件夹，用来存放生成的代码文件。
+在== 不含中文和空格 ==的任意目录下新建一个文件夹；再在该文件夹下新建src文件夹，用来存放生成的代码文件。
 
 
 
@@ -188,7 +188,7 @@ java -jar mybatis-generator-core-1.3.5.jar -configfile generatorConfig.xml -over
 
 原因：把xml文件编码转为UTF-8时会有一个BOM头，所以java在读取时就会报以上错误。
 
-解决方法：用notepad++打开xml文件，选择==**以UTF-8无BOM格式编码**==，然后保存。
+解决方法：用notepad++打开xml文件，选择== **以UTF-8无BOM格式编码** ==，然后保存。
 
 
 
