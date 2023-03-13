@@ -1,23 +1,104 @@
-## 使用MyBatis Generator自动创建代码
+# 使用 ```MyBatis Generator``` 自动创建代码
 
+## 自动生成注解 - ```tk.mybatis``` 源码分析
 
+### ```@Table``` 注解
+
+```.\tk\mybatis\mapper\generator\MapperPlugin.class```:
+
+```java
+private void processEntityClass(TopLevelClass topLevelClass, IntrospectedTable introspectedTable) {
+    topLevelClass.addImportedType("javax.persistence.*");
+    String tableName = introspectedTable.getFullyQualifiedTableNameAtRuntime();
+    if (StringUtility.stringContainsSpace(tableName)) {
+        tableName = this.context.getBeginningDelimiter() + tableName + this.context.getEndingDelimiter();
+    }
+
+    if (this.caseSensitive && !topLevelClass.getType().getShortName().equals(tableName)) {
+        topLevelClass.addAnnotation("@Table(name = \"" + this.getDelimiterName(tableName) + "\")");
+    } else if (!topLevelClass.getType().getShortName().equalsIgnoreCase(tableName)) {
+        topLevelClass.addAnnotation("@Table(name = \"" + this.getDelimiterName(tableName) + "\")");
+    } else if (!StringUtility.stringHasValue(this.schema) && !StringUtility.stringHasValue(this.beginningDelimiter) && !StringUtility.stringHasValue(this.endingDelimiter)) {
+        if (this.forceAnnotation) {
+            topLevelClass.addAnnotation("@Table(name = \"" + this.getDelimiterName(tableName) + "\")");
+        }
+    } else {
+        topLevelClass.addAnnotation("@Table(name = \"" + this.getDelimiterName(tableName) + "\")");
+    }
+
+}
+```
+
+### ```@Id, @GeneratedValue, @Column``` 注解
+
+```.\tk\mybatis\mapper\generator\MapperCommentGenerator.class```:
+
+```java
+public void addFieldComment(Field field, IntrospectedTable introspectedTable, IntrospectedColumn introspectedColumn) {
+    if (StringUtility.stringHasValue(introspectedColumn.getRemarks())) {
+        field.addJavaDocLine("/**");
+        StringBuilder sb = new StringBuilder();
+        sb.append(" * ");
+        sb.append(introspectedColumn.getRemarks());
+        field.addJavaDocLine(sb.toString());
+        field.addJavaDocLine(" */");
+    }
+
+    if (field.isTransient()) {
+        field.addAnnotation("@Transient");
+    }
+
+    Iterator var7 = introspectedTable.getPrimaryKeyColumns().iterator();
+
+    while(var7.hasNext()) {
+        IntrospectedColumn column = (IntrospectedColumn)var7.next();
+        if (introspectedColumn == column) {
+            field.addAnnotation("@Id");
+            break;
+        }
+    }
+
+    String column = introspectedColumn.getActualColumnName();
+    if (StringUtility.stringContainsSpace(column) || introspectedTable.getTableConfiguration().isAllColumnDelimitingEnabled()) {
+        column = introspectedColumn.getContext().getBeginningDelimiter() + column + introspectedColumn.getContext().getEndingDelimiter();
+    }
+
+    if (!column.equals(introspectedColumn.getJavaProperty())) {
+        field.addAnnotation("@Column(name = \"" + this.getDelimiterName(column) + "\")");
+    } else if (!StringUtility.stringHasValue(this.beginningDelimiter) && !StringUtility.stringHasValue(this.endingDelimiter)) {
+        if (this.forceAnnotation) {
+            field.addAnnotation("@Column(name = \"" + this.getDelimiterName(column) + "\")");
+        }
+    } else {
+        field.addAnnotation("@Column(name = \"" + this.getDelimiterName(column) + "\")");
+    }
+
+    if (introspectedColumn.isIdentity()) {
+        if (introspectedTable.getTableConfiguration().getGeneratedKey().getRuntimeSqlStatement().equals("JDBC")) {
+            field.addAnnotation("@GeneratedValue(generator = \"JDBC\")");
+        } else {
+            field.addAnnotation("@GeneratedValue(strategy = GenerationType.IDENTITY)");
+        }
+    } else if (introspectedColumn.isSequenceColumn()) {
+        String tableName = introspectedTable.getFullyQualifiedTableNameAtRuntime();
+        String sql = MessageFormat.format(introspectedTable.getTableConfiguration().getGeneratedKey().getRuntimeSqlStatement(), tableName, tableName.toUpperCase());
+        field.addAnnotation("@GeneratedValue(strategy = GenerationType.IDENTITY, generator = \"" + sql + "\")");
+    }
+
+}
+```
+
+## 使用 ```MyBatis Generator``` 自动创建代码
 
 ### 创建目录
 
-
-
 在*不含中文和空格* 的任意目录下新建一个文件夹；再在该文件夹下新建src文件夹，用来存放生成的代码文件。
-
-
 
 ![](images/directory.png)
 
-
-
 ### generatorConfig.xml
 
-```javascript
-
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE generatorConfiguration
 PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
@@ -92,32 +173,25 @@ PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
 		</table>
     </context>
 </generatorConfiguration>
-
 ```
 
 ### cmd
 
-~~~javascript
-
+```bash
 java -jar mybatis-generator-core-1.3.5.jar -configfile generatorConfig.xml -overwrite
-
-~~~
+```
 
 **注意cmd的输出信息：**
 
 - **MyBatis Generator finished successfully.**
 
-表示生成成功。
-
-
+   表示生成成功。
 
 - **前言中不允许有内容**
 
-原因：把xml文件编码转为UTF-8时会有一个BOM头，所以java在读取时就会报以上错误。
+   原因：把xml文件编码转为UTF-8时会有一个BOM头，所以java在读取时就会报以上错误。
 
-解决方法：用notepad++打开xml文件，选择*以UTF-8无BOM格式编码*，然后保存。
-
-
+   解决方法：用notepad++打开xml文件，选择*以UTF-8无BOM格式编码*，然后保存。
 
 ### 生成的代码结构
 
