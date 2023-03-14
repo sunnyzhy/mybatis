@@ -1,5 +1,16 @@
 # 使用 ```MyBatis Generator``` 自动创建代码
 
+## 前言
+
+配置 ```jdbcConnection``` 时一定要注意添加以下配置项:
+
+```xml
+<!-- 读取数据表的 comment 信息，默认为 false，取出来的 remarks 为 "" -->
+<property name="useInformationSchema" value="true"/>
+<!-- 设置编码，否则取出来的 remarks 是乱码 -->
+<property name="characterEncoding" value="utf8"/>
+```
+
 ## 自动生成注解 - ```tk.mybatis``` 源码分析
 
 ### ```@Table``` 注解
@@ -124,6 +135,10 @@ PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
             connectionURL="jdbc:mysql://192.168.8.128:3306/shiro" 
 			userId="root"
             password="root">
+            <!-- 读取数据表的 comment 信息，默认为 false，取出来的 remarks 为 "" -->
+            <property name="useInformationSchema" value="true"/>
+            <!-- 设置编码，否则取出来的 remarks 是乱码 -->
+            <property name="characterEncoding" value="utf8"/>
         </jdbcConnection>
 		
         <javaTypeResolver>
